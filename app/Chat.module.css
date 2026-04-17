@@ -16,6 +16,7 @@
   background: rgba(255, 255, 255, 0.05);
   text-align: center;
   border-bottom: 1px solid #333;
+  flex-shrink: 0; /* ADDED: Prevents squishing */
 }
 
 .header h1 {
@@ -60,8 +61,8 @@
   background: rgba(255, 255, 255, 0.05);
   display: flex;
   gap: 10px;
+  flex-shrink: 0; /* ADDED: Prevents the input from getting crushed */
 }
-
 .input {
   flex: 1;
   padding: 15px;
@@ -70,7 +71,7 @@
   background: var(--bg-color);
   color: white;
   outline: none;
-  font-size: 1rem;
+  font-size: 16px; /* CHANGED: Strictly 16px to prevent iOS auto-zoom */
 }
 
 .input:focus {
@@ -114,7 +115,7 @@
 @media (max-width: 768px) {
   .container {
     max-width: 100%;
-    height: 100dvh; /* Full height on mobile (handles address bar) */
+    height: 100dvh;
     margin-top: 0;
     border-radius: 0;
     box-shadow: none;
@@ -139,6 +140,8 @@
 
   .inputArea {
     padding: 15px;
+    /* ADDED: Handles iPhone home bar at the bottom so input isn't blocked */
+    padding-bottom: max(15px, env(safe-area-inset-bottom));
   }
 
   .sendBtn {
