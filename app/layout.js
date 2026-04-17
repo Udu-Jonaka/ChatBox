@@ -13,13 +13,16 @@ const geistMono = Geist_Mono({
 
 export const metadata = {
   title: "Jhay's AI Chat",
-  description: "Powered by Google Gemini",
+  description: "Powered by Groq",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable}`}
+        suppressHydrationWarning
+      >
         {children}
       </body>
     </html>

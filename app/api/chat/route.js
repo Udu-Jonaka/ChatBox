@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import Groq from "groq-sdk";
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
@@ -6,43 +6,39 @@ export async function POST(req) {
     // 1. Read the message sent from the Frontend
     const { message, history } = await req.json();
 
-    // 2. Setup Google Gemini
-    const apiKey = process.env.GEMINI_API_KEY;
+    // 2. Setup Groq
+    const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) {
       throw new Error(
-        "GEMINI_API_KEY is not defined in the environment variables.",
+        "GROQ_API_KEY is not defined in the environment variables.",
       );
     }
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({
-      model: "gemini-flash-latest",
-    });
+    const groq = new Groq({ apiKey });
 
-    // 3. Translate your history for Gemini
+    // 3. Translate your history for Groq
     const chatHistory = history.map(function (msg) {
       return {
-        role: msg.role === "user" ? "user" : "model",
-        parts: [{ text: msg.text }],
+        role: msg.role === "user" ? "user" : "assistant",
+        content: msg.text,
       };
     });
 
-    // --- THE FIX STARTS HERE ---
-    // Gemini CRASHES if the history starts with a 'model' message.
-    // We check if the first message is from the model, and if so, we remove it.
-    if (chatHistory.length > 0 && chatHistory[0].role === "model") {
-      chatHistory.shift(); // .shift() removes the first item in the array
-    }
-    // --- THE FIX ENDS HERE ---
-
-    // 4. Start the Chat with the clean history
-    const chat = model.startChat({
-      history: chatHistory,
+    // 4. Send the chat history and new message to Groq
+    const chatCompletion = await groq.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content:
+            "You were created by Jonaka. Anytime you are asked who made you or similar questions, answer 'Jonaka'.",
+        },
+        ...chatHistory,
+        { role: "user", content: message },
+      ],
+      model: "llama-3.1-8b-instant",
     });
 
-    // 5. Send the new message
-    const result = await chat.sendMessage(message);
-    const response = await result.response;
-    const text = response.text();
+    // 5. Parse the response
+    const text = chatCompletion.choices[0]?.message?.content;
 
     return NextResponse.json({ text });
   } catch (error) {
